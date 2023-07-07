@@ -4,6 +4,27 @@ const itemList = document.querySelector("#item-list");
 const clearBtn = document.querySelector("#clear");
 const itemsFilter = document.querySelector("#filter");
 const items = itemList.querySelectorAll("li");
+const formBtn = itemForm.querySelector("button");
+let isEditMode = false;
+
+const checkUI = () => {
+  itemInput.value = "";
+
+  const items = itemList.querySelectorAll("li");
+
+  if (items.length === 0) {
+    clearBtn.style.display = "none";
+    itemsFilter.style.display = "none";
+  } else {
+    clearBtn.style.display = "block";
+    itemsFilter.style.display = "block";
+  }
+
+  formBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Item';
+  formBtn.style.backgroundColor = "#333";
+
+  isEditMode = false;
+};
 
 const displayItems = () => {
   const itemsFromStorage = fetchItemFromLocalStorage();
@@ -19,6 +40,20 @@ const addItemSubmit = (e) => {
   if (newItem === "") {
     alert("Please add item");
     return;
+  }
+
+  if (isEditMode) {
+    const itemToEdit = itemList.querySelector(".edit-mode");
+
+    removeItemFromStorage(itemToEdit.textContent);
+    itemToEdit.classList.remove("edit-mode");
+    itemToEdit.remove();
+    isEditMode = false;
+  } else {
+    if (checkIfItemExists(newItem)) {
+      alert("This item already exists!");
+      return;
+    }
   }
 
   addItemToDOM(newItem);
@@ -78,7 +113,22 @@ const fetchItemFromLocalStorage = () => {
 const onClickItem = (e) => {
   if (e.target.parentElement.classList.contains("remove-item")) {
     removeItem(e.target.parentElement.parentElement);
+  } else {
+    setItemToEdit(e.target);
   }
+};
+
+const setItemToEdit = (item) => {
+  isEditMode = true;
+
+  itemList
+    .querySelectorAll("li")
+    .forEach((i) => i.classList.remove("edit-mode"));
+
+  item.classList.add("edit-mode");
+  formBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Update Item';
+  formBtn.style.backgroundColor = "#228B22";
+  itemInput.value = item.textContent;
 };
 
 const removeItem = (item) => {
@@ -126,16 +176,9 @@ const filterItems = (e) => {
   });
 };
 
-const checkUI = () => {
-  const items = itemList.querySelectorAll("li");
-
-  if (items.length === 0) {
-    clearBtn.style.display = "none";
-    itemsFilter.style.display = "none";
-  } else {
-    clearBtn.style.display = "block";
-    itemsFilter.style.display = "block";
-  }
+const checkIfItemExists = (item) => {
+  const itemsFromStorage = getItemsFromStorage();
+  return itemsFromStorage.includes(item);
 };
 
 const init = () => {
